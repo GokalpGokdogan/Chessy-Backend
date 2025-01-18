@@ -27,3 +27,6 @@ dist-ssr
 .env
 emsdk
 stockfish
+
+# Local Netlify folder
+.netlify

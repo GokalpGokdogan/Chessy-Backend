@@ -4,8 +4,8 @@ const mongoose = require('mongoose');
 const serverless = require('serverless-http');
 const app = express();
 
-const usersRouter = require('../../routes/users');
-const aiRouter = require('../../routes/ai');
+const usersRouter = require('./routes/users');
+const aiRouter = require('./routes/ai');
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
@@ -21,6 +21,10 @@ app.use((req, res, next) => {
 
 app.use('/api/users', usersRouter);
 app.use('/api/ai', aiRouter);
+
+app.get('/', (req, res) => {
+  res.send('Hello World');
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
