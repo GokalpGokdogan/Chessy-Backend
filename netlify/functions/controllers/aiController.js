@@ -39,7 +39,7 @@ const aiExplain = async (req, res) => {
               }
             ],
             max_completion_tokens: 150,
-            temperature: 0,
+            temperature: 0.3,
             response_format: { type: "json_object" }
 
           });
