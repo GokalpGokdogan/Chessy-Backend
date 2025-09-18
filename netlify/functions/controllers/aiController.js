@@ -16,15 +16,22 @@ const groq = new Groq({
 const aiExplain = async (req, res) => {
     const {prompt} = req.body;
 
-    console.log(prompt,"check", req.body)//,typeof promptBody,req.body);
+    console.log(prompt,"check", req.body)
     
     try{
         const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile", // Ensure this model is available in Groq's offerings
+            model: "llama-3.3-70b-versatile", 
             messages: [
               {
                 role: "system",
-                content: "You will explain the chess best moves according to the given FEN. This will be a JSON response."
+                content: `
+                  You will explain the chess best moves according to the given FEN.
+                  Return a JSON object **only** (no extra text) in the exact structure below:
+                  {
+                    "strategic_advantages": ["..."],    // up to 5 items in the list, each a brief phrase, e.g. "control of the center", it might be less than 5
+                    "response": "..."                   // a single brief, informative paragraph
+                  }
+                `
               },
               {
                 role: "user",
@@ -36,11 +43,6 @@ const aiExplain = async (req, res) => {
             response_format: { type: "json_object" }
 
           });
-      
-
-        console.log(response.choices[0].message.content);
-        // console.log(response.data);
-        // console.log(response.data.choices[0].text);
         
         res.status(200).json(response.choices[0].message.content);
     } catch(err){

@@ -1,15 +1,33 @@
 const User = require('../models/userModel');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 
 //create a token
 
 const createToken = (id) => {
     return jwt.sign({id}, process.env.JWT_SECRET, {
-        expiresIn:  1 * 18 * 60 * 60 //18 hours
+        expiresIn:  1 * 1 * 60 * 60 //18 hours
     });
 }
+
+
+//verify reCAPTCHA token
+
+const verifyRecaptcha = async (token) => {
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
+
+    try {
+        const response = await axios.post(url);
+        return response.data.success;
+    } catch (error) {
+        console.error('Error verifying reCAPTCHA:', error);
+        return false;
+    }
+};
+
 
 //get all users
 
@@ -119,8 +137,14 @@ const deleteUsers = async (req, res) => {
 
 
 const register = async (req, res) => {
-    const {mail, password} = req.body;
+    const {mail, password, recaptchaToken} = req.body;
     try{
+        // Verify reCAPTCHA token if necessary
+        const isHuman = await verifyRecaptcha(recaptchaToken);
+        if (!isHuman) {
+            return res.status(400).json({error: 'reCAPTCHA verification failed'});
+        }
+
         const user = await User.register(mail, password);
         const token = createToken(user._id);
         res.status(200).json({user, token});
@@ -133,8 +157,14 @@ const register = async (req, res) => {
 //login a user
 
 const login = async (req, res) => {
-    const {mail, password} = req.body;
+    const {mail, password, recaptchaToken} = req.body;
     try{
+        // Verify reCAPTCHA token if necessary
+        const isHuman = await verifyRecaptcha(recaptchaToken);
+        if (!isHuman) {
+            return res.status(400).json({error: 'reCAPTCHA verification failed'});
+        }
+        
         const user = await User.login(mail, password);
         const token = createToken(user._id);
         res.status(200).json({user, token});
